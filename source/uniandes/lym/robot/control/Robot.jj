@@ -1,0 +1,432 @@
+/*
+Gramatica para el Robot:
+Autor: Alejandro Arango
+Modificado por: Silvia Takahashi
+Modificado por: Juan Pablo Morales.
+Agregadas producciones para manejar globos
+Modificado por Silvia Takahashi
+
+
+ **/
+
+
+options 
+{
+  
+	LOOKAHEAD=1; 
+	IGNORE_CASE=true;
+	STATIC = false;
+	
+}
+   
+
+PARSER_BEGIN(Robot)
+
+package uniandes.lym.robot.control;
+
+import uniandes.lym.robot.kernel.*;
+import uniandes.lym.robot.view.Console;
+ 
+import java.awt.Point;
+import java.io.*;
+import java.util.Vector;
+import java.util.LinkedList;
+import java.util.*;
+
+@SuppressWarnings("serial")
+public class Robot 
+{
+
+
+	private RobotWorldDec world;
+	
+	
+	void setWorld(RobotWorld w) {
+		world = (RobotWorldDec) w;	
+	}
+
+	String salida=new String();
+	ArrayList<String> variables= new ArrayList<String>();
+	ArrayList<String> macros= new ArrayList<String>();
+	ArrayList<String> pmacros= new ArrayList<String>();
+	
+	
+}
+PARSER_END(Robot)
+
+SKIP:
+{
+	" "
+	|	"\r"
+	|	"\t"
+	| "\n"
+} 
+
+TOKEN: /* Nombres de Comandos */
+
+{
+
+
+  			<MOVE :  ("m"|"M")("o"|"O")("v"|"V")("e"|"E")>
+		| 	<RIGHT: ("r"|"R")("i"|"I")("g"|"G")("h"|"H")("t"|"T")>
+		| 	<PUT: ("p"|"P")("u"|"")("t"|"T")>
+		| 	<PICK: ("p"|"P")("i"|"I")("c"|"C")("k"|"K")>
+		|  <POP:  ("p"|"P")("o"|"O")("p"|"P")>
+		|  <GO: ("g"|"G")("o"|"O") >
+        |  < HOP:  ("h"|"H")("o"|"O")("p"|"P") >
+        |  < EXEC: ("e"|"E")("x"|"X")("e"|"E")("c"|"C") >
+        |  < NAME:(< LETTER >)+ >
+		| < #LETTER: ["A"-"Z"]|["A"-"Z"] >
+		| < NEW: ("n"|"N")("e"|"E")("w"|"W") >
+		| < VAR: (< LETTER >)+>
+		| < MACRO: ("m"|"M")("a"|"A")("c"|"C")("r"|"R")("o"|"O") >
+		| < TURNTOMY: ("t"|"T")("u"|"U")("r"|"R")("n"|"N")("t"|"T")("o"|"O")("m"|"M")("y"|"Y") >
+		| < TURNTOTHE: ("t"|"T")("u"|"U")("r"|"R")("n"|"N")("t"|"T")("o"|"O")("t"|"T")("h"|"H")("e"|"E") >
+		| < WALK: ("w"|"W")("a"|"A")("l"|"L")("k"|"K") >
+		| < JUMP: ("j"|"J")("u"|"U")("m"|"M")("p"|"P") >
+		| < DROP: ("d"|"D")("r"|"R")("o"|"O")("p"|"P") >
+		| < GRAB: ("g"|"G")("r"|"R")("a"|"A")("b"|"B")>
+		| < LETGO: ("l"|"L")("e"|"E")("t"|"T")("g"|"G")("o"|"O") >
+		| < MOVES: ("m"|"M")("o"|"O")("v"|"V")("e"|"E")("s"|"S") >
+		| < NOP: ("n"|"N")("o"|"O")("p"|"P") >
+		| < SAFEEXE: ("s"|"S")("a"|"A")("f"|"F")("e"|"E")("e"|"E")("x"|"X")("e"|"E") >
+		| < SIZE: ("s"|"S")("i"|"I")("z"|"Z")("e"|"E") >
+		| < MYX: ("m"|"M")("y"|"Y")("x"|"X") >
+		| < MYY: ("m"|"M")("y"|"Y")("y"|"Y") >
+		| < MYCHIPS:("m"|"M")("y"|"Y")("c"|"C")("h"|"H")("i"|"I")("p"|"P")("s"|"S") >
+		| < MYBALLOONS: ("m"|"M")("y"|"Y")("b"|"B")("a"|"A")("l"|"L")("l"|"L")("o"|"O")("o"|"O")("n"|"N")("s"|"S") >
+		| < CHIPSHERE: ("c"|"C")("h"|"H")("i"|"I")("p"|"P")("s"|"S")("h"|"H")("e"|"E")("r"|"R")("e"|"E") >
+		| < BALLOONSHERE: ("b"|"B")("a"|"A")("l"|"L")("l"|"L")("o"|"O")("o"|"O")("n"|"N")("s"|"S")("h"|"H")("e"|"E")("r"|"R")("e"|"E") >
+		| < ROOMFORCHIPS: ("r"|"R")("o"|"O")("o"|"O")("m"|"M")("f"|"F")("o"|"O")("r"|"R")("c"|"C")("h"|"H")("i"|"I")("p"|"P")("s"|"S") >
+		| < IF:  ("i"|"I")("f"|"F") >
+		| < THEN:  ("t"|"T")("h"|"H")("e"|"E")("n"|"N") >
+		| < ELSE: ("e"|"E")("l"|"L")("s"|"S")("e"|"E") >
+		| < FI: ("f"|"F")("i"|"I") >
+		| < DO: ("d"|"D")("o"|"O") >
+		| < OD: ("o"|"O")("d"|"D") >
+		| < REPEAT: ("r"|"R")("e"|"E")("p"|"P")("e"|"E")("a"|"A")("t"|"T") >
+		| < TIMES: ("t"|"T")("i"|"I")("m"|"M")("e"|"E")("s"|"S") >
+		| < PER: ("p"|"P")("e"|"E")("r"|"R") >
+		| < ISBLOCKED: ("i"|"I")("s"|"S")("b"|"B")("l"|"L")("o"|"O")("c"|"C")("k"|"K")("e"|"E")("d"|"D")("?") >
+		| < ISFACING: ("i"|"I")("s"|"S")("f"|"F")("a"|"A")("c"|"C")("i"|"I")("n"|"N")("g"|"G")("?") >
+		| < ZERO: ("z"|"Z")("e"|"E")("r"|"R")("o"|"O")("?") >
+		| < NOT: ("n"|"N")("o"|"O")("t"|"T") >
+		| < LEFT: ("l"|"L")("e"|"E")("f"|"F")("t"|"T") >
+		| < FRONT: ("f"|"F")("r"|"R")("o"|"O")("n"|"N")("t"|"T") >
+		| < BACK: ("b"|"B")("a"|"A")("c"|"C")("k"|"K") >
+		| < NORTH: ("n"|"N")("o"|"O")("r"|"R")("t"|"T")("h"|"H") >
+		| < SOUTH: ("s"|"S")("o"|"O")("u"|"U")("t"|"T")("h"|"H") >
+		| < EAST: ("e"|"E")("a"|"A")("s"|"S")("t"|"T") >
+		| < WEST: ("w"|"W")("e"|"E")("s"|"S")("t"|"T") >
+		| < FORWARD: ("f"|"F")("o"|"O")("r"|"R")("w"|"W")("a"|"A")("r"|"R")("d"|"D") >
+		| < BACKWARD: ("b"|"B")("a"|"A")("c"|"C")("k"|"K")("w"|"W")("a"|"A")("r"|"R")("d"|"D") >
+		
+		  
+        	
+
+}
+
+TOKEN:
+{
+			<BALLOONS: ("b"|"B")("a"|"A")("l"|"L")("l"|"L")("o"|"O")("o"|"O")("n"|"N")("s"|"S")  >
+		|	<CHIPS:   ("c"|"C")("h"|"H")("i"|"I")("p"|"P")("s"|"S")>	
+
+}
+
+
+
+TOKEN :
+{
+		<NUM: (<DIGIT>)+ >
+		|  	<#DIGIT: ["0"-"9"] >
+        
+}
+
+
+
+	//boolean command(uniandes.lym.robot.view.Console sistema) :
+	boolean command(Console sistema):
+	{	
+		
+		int x,y;
+		salida=new String();	
+	}
+
+	
+	{
+		(
+		  (
+		   <RIGHT> "(" ")" {world.turnRight();salida = "Command: Turnright";}
+		| 	<MOVE>  "(" x=num() ")" {world.moveForward(x,false);salida = "Command: Moveforward ";}  
+		| 	<HOP>  "(" x=num() ")" {world.moveForward(x,true);salida = "Command:Jumpforward ";}
+		| 	<GO>  "(" x=num() "," y=num()")" {world.setPostion(x,y);salida = "Command:GO ";}  
+		|  <PUT> "("  put() ")" 		  			
+		|  <PICK> "(" get()  ")"	
+	    |  < POP > "(" x=num() ")" {world.popBalloons(x); salida = "Comando:  Pop";}
+	    | < TURNTOMY > "(" (< RIGHT >| < LEFT >|< BACK >) ")"
+		| < TURNTOTHE > "(" (< NORTH >| < SOUTH >|< EAST >|< WEST >) ")"
+		| < WALK > "(" x=values() ")" {world.moveForward(x,false);salida = "Command: Moveforward ";}  
+		| < JUMP > "(" x=values() ")" {world.moveForward(x,true);salida = "Command:Jumpforward ";}
+		| < DROP > "(" x=values()")" {world.putChips(x); salida = "Command:  Put Chips"; }
+		| < GRAB> "(" x=values()")" {world.grabBalloons(x);salida="Command:  Pick balloons";}
+		| < LETGO > "(" x=values()")"  {world.putBalloons(x); salida = "Command:  Put Balloons";}
+		| < MOVES> "(" (((< FORWARD >",")| (< SOUTH >",")|(< EAST >",")|(< WEST >",")))+ ")"
+		| < NOP >
+		| < NEW >
+		| < MACRO >
+		
+		
+		) ";" 
+
+		{
+		    try {
+	    			 Thread.sleep(900);
+	    	    } catch (InterruptedException e) {
+	    			        System.err.format("IOException: %s%n", e);
+	    		    }
+	    			 
+			sistema.printOutput(salida);
+			return true;
+		})+
+
+    	| <EOF> {return false;} 
+	}
+
+
+	
+		
+	void put() :
+	{
+		int f=1;	
+	}
+	{
+		( <CHIPS>    "," f=num() {world.putChips(f); salida = "Command:  Put Chips"; })
+		|  	  ( <BALLOONS>   "," f=num() {world.putBalloons(f); salida = "Command:  Put Balloons";})	 
+
+	}
+
+	void get() :
+	{
+		int f=1;	
+	}
+	{
+		( <CHIPS>   "," f=num() {world.pickChips(f);salida = "Command:  Pick chips";})
+		|  	  ( <BALLOONS>   "," f=num() {world.grabBalloons(f);salida="Command:  Pick balloons";})	 
+
+	}
+
+
+	
+
+	/**
+	 * Unsigned decimal number
+	 * @return the corresponding value of the string
+	 * @error  corresponding value is too large
+	 */
+
+	int num() throws Error:
+	{	
+		int total=1;
+	}
+	{
+		<NUM>
+		{
+			try 
+			{
+				total = Integer.parseInt(token.image);
+			} 
+			catch (NumberFormatException ee) 
+			{
+				throw new Error("Number out of bounds: "+token.image+" !!");
+			}
+			return total;
+		}
+	}
+
+	void exec():
+	{ }
+	{
+	  <EXEC > " { " (  //((command(sistema) ";")+)
+	  ((loop()";")+)  | (conditional()";") | ((repeats()";")+) | ((safeexe()";")+)) " }"	
+}
+
+
+	 void safeexe():
+	 { }
+{
+	   < SAFEEXE > "(" command(sistema) ")"	
+
+} 
+	
+	void assigment():
+	{ }
+	{
+		<NAME > { nombre=token.image;
+							  nombre.tolowerCase();
+							  variables.add(nombre); }
+	"=" num()
+}
+	  
+
+	void newVar(ArrayList<String> variables):
+	{ }
+	{
+
+	  < NEW > <VAR > assigment()
+
+}
+
+	void newMacro(ArrayList<String> macros, ArrayList <String > pmacros):
+	{ArrayList<String > params =  new ArrayList<String>();}
+	
+	{
+	  < NEW > <MACRO > <NAME > { nombre=token.image;
+							  nombre.tolowerCase();
+							  macros.add(nombre); }
+	(
+	  (
+	    "(" <NAME > { parametro=token.image;
+							  parametro.tolowerCase();
+							  pmacros.add(nombre); } ("," <NAME > { parametro=token.image;
+							  parametro.tolowerCase();
+							  pmacros.add(nombre); })+ ")")
+							  
+|( "("")")
+
+)
+
+" { " (  ((command(uniandes.lym.robot.view.Console) ";")+) | ((loop()";")+)  | (conditional()";") | ((repeats()";")+)) " }"		
+		
+}
+
+
+		
+		  
+
+	int values():
+	{ }
+	{
+	  
+		< SIZE>
+		| < MYX >
+		| < MYY>
+		| < MYCHIPS>
+		| < MYBALLOONS>
+		| < CHIPSHERE >
+		| < BALLOONSHERE >
+		| < ROOMFORCHIPS >
+		| num()
+
+
+
+
+}
+
+
+	void paramsD():
+	{ }
+	{
+	  < RIGHT >
+	| < LEFT >
+	| < FRONT >
+	| < BACK >
+
+	}
+
+	void paramsO():
+	{ }
+	{
+	  < NORTH >
+	| < SOUTH >
+	| < EAST >
+	| < WEST >
+
+	}
+	
+							  
+
+
+
+void conditional():
+	{}
+	{
+
+	 	< IF > "("
+	 	
+	 	  ( < NOT > "(" (< ISBLOCKED > "("paramsD()")") | (< ISFACING > "(" paramsO()")") | (< ZERO > "("values()")") ")")
+	|  	((< ISBLOCKED > "("paramsD()")") | (< ISFACING > "("paramsO()")") | (< ZERO > "("values()")"))
+
+	 	")"
+	 	  
+	< THEN > " { " (   ((command(uniandes.lym.robot.view.Console) ";")+) | ((loop()";")+) | ((repeats()";")+)  ) " } "
+	< ELSE > " { " (  ((command(uniandes.lym.robot.view.Console) ";")+) | ((loop()";")+) | ((repeats()";")+)  ) " } "
+	< FI >
+
+
+}							  
+	
+void loop():
+{ }
+
+{
+
+  < DO > "("
+
+	(
+	   	
+		((< ISBLOCKED > "("paramsD()")") | (< ISFACING > "("paramsO()")") | (< ZERO > "("values()")") ")")          )
+
+(
+  
+	" { "  (  ((command(uniandes.lym.robot.view.Console) ";")+) |  (conditional()";") | ((repeats()";")+)) " }"
+
+)
+	 < OD >	 
+
+
+}
+
+void loopnot():
+
+{ }
+{
+
+  < DO > "("
+
+	(
+	   	
+	 	    ( < NOT > "(" (< ISBLOCKED > "("paramsD()")") | (< ISFACING > "(" paramsO()")") | (< ZERO > "("values()")") ")"))
+
+
+(
+  
+	" { "  (  ((command(uniandes.lym.robot.view.Console) ";")+) | (conditional()";") | ((repeats()";")+)) " }"
+
+)
+	 < OD >	 
+
+
+}
+
+
+
+void repeats():
+
+{ }
+
+{
+
+  < REPEAT > values() < TIMES >
+
+  " { "   ((command(uniandes.lym.robot.view.Console) ";")+ | (conditional()";") | ((loop()";")+)  ) " } "
+
+	< PER >
+}
+
+
+
+
+
+
+
+
